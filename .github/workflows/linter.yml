@@ -1,11 +1,18 @@
 name: 'Lint Code'
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Lint codebase'
   push:
     branches: [master, main]
   pull_request:
     branches: [master, main]
-  workflow_dispatch
 
 jobs: # list of things to do
   lint_function_js:
