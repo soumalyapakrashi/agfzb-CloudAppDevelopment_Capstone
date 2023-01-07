@@ -1,35 +1,111 @@
-"""IBM Cloud Function that gets all reviews for a dealership
-
-Returns:
-    List: List of reviews for the given dealership
-"""
-from cloudant.client import Cloudant
-from cloudant.error import CloudantException
+from ibmcloudant.cloudant_v1 import CloudantV1, Document
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+import json
 import requests
 
 
-def main(param_dict):
-    """Main Function
-
-    Args:
-        param_dict (Dict): input paramater
-
-    Returns:
-        _type_: _description_ TODO
-    """
-
+def main(args):
+    
     try:
-        client = Cloudant.iam(
-            account_name=param_dict["COUCH_USERNAME"],
-            api_key=param_dict["IAM_API_KEY"],
-            connect=True,
-        )
-        print(f"Databases: {client.all_dbs()}")
-    except CloudantException as cloudant_exception:
-        print("unable to connect")
-        return {"error": cloudant_exception}
-    except (requests.exceptions.RequestException, ConnectionResetError) as err:
-        print("connection error")
-        return {"error": err}
-
-    return {"dbs": client.all_dbs()}
+        # IAM Authentication with API key of Cloudant
+        # Replace the {{CLOUDANT_API_KEY}} with the actual API key
+        authenticator = IAMAuthenticator('{{CLOUDANT_API_KEY}}')
+        
+        # Instantiate a Cloudant instance with the authenticator above
+        service = CloudantV1(authenticator=authenticator)
+        
+        # Set the endpoint in which Cloudant sends and receives data
+        # Replace the {{CLOUDANT_SERVICE_URL}} with the actual Cloudant endpoint
+        service.set_service_url('{{CLOUDANT_SERVICE_URL}}')
+        
+    # For all sorts of authentication errors, return 500 status
+    except Exception as cloudant_exception:
+        return {
+            "statusCode": 500,
+            "headers": { "Content-Type": "application/json" },
+            "body": "Server error"
+        }
+        
+        
+    # For GET requests, retrieve data from database and return
+    if args["__ow_method"] == "get":
+        
+        try:
+            # Retrieve all documents from the database
+            response = service.post_all_docs(db="reviews", include_docs=True).get_result()
+        
+        # For all sorts of data retrieval errors, return 500 status
+        except Exception as cloudant_exception:
+            return {
+                "statusCode": 500,
+                "headers": { "Content-Type": "application/json" },
+                "body": "Server error"
+            }
+            
+        # If 'dealerId' parameter is provided in the query, then it will be available as a key in the args dictionary
+        if "dealerId" in args:
+            # Out of all the docs that we got earlier, choose the ones which match the dealerId provided
+            # The corresponding field to match is 'dealership'
+            filtered_dealers = list(filter(lambda x: x["doc"]["dealership"] == int(args["dealerId"]), response["rows"]))
+            
+            # If length of array is 0, it means no record for the passed dealerId is present. Return error 404.
+            if len(filtered_dealers) == 0:
+                return {
+                    "statusCode": 404,
+                    "headers": { "Content-Type": "application/json" },
+                    "body": "No record found for Dealer ID"
+                }
+            else:
+                # Remove the '_id' and '_rev' fields from the data
+                for data in filtered_dealers:
+                    data["doc"].pop("_id")
+                    data["doc"].pop("_rev")
+                
+                # Format the data so that only the required info is returned
+                final_data = list(map(lambda x: x["doc"], filtered_dealers))
+                
+                return {
+                    "statusCode": 200,
+                    "headers": { "Content-Type": "application/json" },
+                    "body": final_data
+                }
+        
+        # If no dealerId is provided, return all data available from the database
+        else:
+            for data in response["rows"]:
+                data["doc"].pop("_id")
+                data["doc"].pop("_rev")
+            
+            final_data = list(map(lambda x: x["doc"], response["rows"]))
+                
+            return {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": final_data
+            }
+    
+    # For POST requests, insert a new document into the database as passed to the function
+    elif args["__ow_method"] == "post":
+        
+        # The data to be inserted will be passed as raw in the body of the POST request
+        if "__ow_body" in args:
+            # Convert the data received to JSON format
+            data = json.loads(args["__ow_body"])
+            
+            # Post a document to the database with the data received. The _id will be generated by the server
+            create_document_response = service.post_document(db="reviews", document=data["review"]).get_result()
+            
+            # Send the response of the post document status to the client
+            return {
+                "statusCode": 200,
+                "headers": { "Content-Type": "application/json" },
+                "body": create_document_response
+            }
+        
+        # If no data is sent in the body, return with error
+        else:
+            return {
+                "statusCode": 500,
+                "headers": { "Content-Type": "application/json" },
+                "body": "No POST data passed in body of request"
+            }
