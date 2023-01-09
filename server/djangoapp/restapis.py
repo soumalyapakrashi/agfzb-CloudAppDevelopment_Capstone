@@ -38,7 +38,14 @@ def get_request(url, **kwargs):
 
 # Create a `post_request` to make HTTP POST requests
 # e.g., response = requests.post(url, params=kwargs, json=payload)
-
+def post_request(url, json_payload, **kwargs):
+    response = {}
+    try:
+        print(json.loads(json_payload))
+        response = requests.post(url, data=json_payload, headers={'Content-Type': 'application/json'})
+    except:
+        print("Network error occured")
+    return response
 
 # Create a get_dealers_from_cf method to get dealers from a cloud function
 # def get_dealers_from_cf(url, **kwargs):
