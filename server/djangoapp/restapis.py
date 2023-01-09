@@ -41,8 +41,7 @@ def get_request(url, **kwargs):
 def post_request(url, json_payload, **kwargs):
     response = {}
     try:
-        print(json.loads(json_payload))
-        response = requests.post(url, data=json_payload, headers={'Content-Type': 'application/json'})
+        response = requests.post(url, data=json.dumps(json_payload), headers={'Content-Type': 'text/plain'})
     except:
         print("Network error occured")
     return response
