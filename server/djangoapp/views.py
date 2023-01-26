@@ -93,15 +93,17 @@ def get_dealerships(request):
 
 
 # Create a `get_dealer_details` view to render the reviews of a dealer
-def get_dealer_details(request, dealer_id):
+def get_dealer_details(request, dealer_id, dealer_name):
     context = {}
     if request.method == "GET":
         url = "https://eu-gb.functions.appdomain.cloud/api/v1/web/soumalyapakrashi%40gmail.com_dev/dealership-package/get-review"
         # Get dealers from the URL
         reviews = get_dealer_reviews_from_cf(url, dealerId=dealer_id)
         context["reviews"] = reviews
+        context["dealer_name"] = dealer_name
+        print("Context:", reviews[0])
         # Concat all dealer's short name
-        reviewer_names = ' '.join([review.sentiment["sentiment"]["document"]["label"] for review in reviews])
+        # reviewer_names = ' '.join([review.sentiment["sentiment"]["document"]["label"] for review in reviews])
         # Return a list of dealer short name
         return render(request, 'djangoapp/dealer_details.html', context)
 

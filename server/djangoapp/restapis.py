@@ -100,4 +100,4 @@ def analyze_review_sentiments(dealerreview):
         api_key="NlAC7XWXT5ZSLfSvQGCBbIIkWSDTvbBw5reYWBYxr1fR"
     )
 
-    return nlu_result
+    return nlu_result["sentiment"]["document"]["label"]
