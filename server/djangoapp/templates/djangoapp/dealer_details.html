@@ -39,8 +39,7 @@
                     <a class="nav-link" href="{% url 'djangoapp:logout' %}">Logout</a>
                 </li>
             </ul>
-            {% else %}
-            <a class="btn btn-outline-success my-2 my-sm-0" href="{% url 'djangoapp:registration' %}">Add Review</a>
+            <a class="btn btn-outline-success my-2 my-sm-0" href="{% url 'djangoapp:add_review' dealer_id dealer_name %}">Add Review</a>
             {% endif %}
         </div>
     </nav>

@@ -10,7 +10,41 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.5.0/js/bootstrap-datepicker.js"></script>
 
 </head>
-    <body>
-    <!--Add review form here -->
-    </body>
+<body>
+    <div class="container">
+        <h2>Add a review about {{dealer_name}}</h2>
+        <!--Add review form here -->
+        <form action="{% url 'djangoapp:add_review' dealer_id dealer_name %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="content"><strong>Enter the review content:</strong></label>
+                <textarea class="form-control" id="content" name="content" rows="2" required></textarea>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="purchasecheck" id="purchasecheck">
+                <label for="purchasecheck">Has purchased the car from this dealership? (select purchased car information below if checked)</label>
+            </div>
+
+            <label for="car"><strong>Select your car (model-make-year):</strong></label>
+            <select name="car" id="car" class="form-select" required>
+                {% for car in cars %}
+                    <option selected value={{car.id}}>{{car.name}}-{{car.make_name}}-{{ car.year }}</option>
+                {% endfor %}
+        </select>
+
+        <div class="form-group">
+            <label for="purchasedate"><strong>Select your Purchase Date:</strong></label>
+            <input class="date-own form-control" type="text" name="purchasedate" id="purchasedate">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <script type="text/javascript">
+        $('.date-own').datepicker({
+           format: 'mm/dd/yyyy'
+        });
+    </script>
+</body>
 </html>
