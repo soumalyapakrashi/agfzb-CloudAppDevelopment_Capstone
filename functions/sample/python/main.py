@@ -8,15 +8,13 @@ def main(args):
     
     try:
         # IAM Authentication with API key of Cloudant
-        # Replace the {{CLOUDANT_API_KEY}} with the actual API key
-        authenticator = IAMAuthenticator('{{CLOUDANT_API_KEY}}')
+        authenticator = IAMAuthenticator('PMyItaK_QlQmCIf1wx4dKQ5NmXJzkMo00BgUGRPrQODs')
         
         # Instantiate a Cloudant instance with the authenticator above
         service = CloudantV1(authenticator=authenticator)
         
         # Set the endpoint in which Cloudant sends and receives data
-        # Replace the {{CLOUDANT_SERVICE_URL}} with the actual Cloudant endpoint
-        service.set_service_url('{{CLOUDANT_SERVICE_URL}}')
+        service.set_service_url('https://3aede888-c0ed-45d4-ab73-eee122eabb19-bluemix.cloudantnosqldb.appdomain.cloud')
         
     # For all sorts of authentication errors, return 500 status
     except Exception as cloudant_exception:
@@ -58,7 +56,7 @@ def main(args):
             else:
                 # Remove the '_id' and '_rev' fields from the data
                 for data in filtered_dealers:
-                    data["doc"].pop("_id")
+                    # data["doc"].pop("_id")
                     data["doc"].pop("_rev")
                 
                 # Format the data so that only the required info is returned
@@ -73,7 +71,7 @@ def main(args):
         # If no dealerId is provided, return all data available from the database
         else:
             for data in response["rows"]:
-                data["doc"].pop("_id")
+                # data["doc"].pop("_id")
                 data["doc"].pop("_rev")
             
             final_data = list(map(lambda x: x["doc"], response["rows"]))
